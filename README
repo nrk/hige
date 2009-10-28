@@ -1,0 +1,65 @@
+Hige 髭
+{{growing mustaches in your templates with Lua}}
+===============================================================================
+
+-- Introduction ---------------------------------------------------------------
+
+Hige is a small yet fairly complete templating library for the Lua programming 
+language and it is based off Mustache[1] while it borrows a few implementation 
+ideas from Mustache.js[2].
+
+[1] http://github.com/defunkt/mustache
+[2] http://github.com/janl/mustache.js
+
+
+-- Usage ----------------------------------------------------------------------
+
+  require 'hige'
+
+  local view = {
+      project  = 'hige', 
+      nickname = 'nrk', 
+      url      = function()
+          return 'http://github.com/'..nickname..'/'..project
+      end, 
+  }
+
+  local template = '{{project}} is maintained by {{nickname}} at {{url}}'
+  local rendered = hige.render(template, view)
+  -- hige is maintained by nrk at http://github.com/nrk/hige
+
+
+-- Why hige? ------------------------------------------------------------------
+
+Just for the fun of it :-)
+
+
+-- Current status of the project-----------------------------------------------
+
+I was not really serious about Hige when I started working on it. There are 
+already much better alternatives for Lua such as Cosmo[3] (whose concept is 
+similar in many ways to hige) and lua-haml[4], so the main reason which is 
+driving its development is simply to deepen my knowledge of Lua. Anyway, I 
+am going to fix the currently broken parts and add the missing features.
+
+[3] http://cosmo.luaforge.net/
+[4] http://github.com/norman/lua-haml
+
+
+-- Author ---------------------------------------------------------------------
+
+Daniele Alessandri - suppakilla{{at}}gmail.com
+
+
+-- Notes ----------------------------------------------------------------------
+
+Aside from a few ideas behind Hige's implementation choices, most of the 
+examples that come with it were taken from Mustache.js.
+
+
+-- Requirements ---------------------------------------------------------------
+
+  * Telescope (required by the test suite):
+    http://telescope.luaforge.net/
+  * LuaFileSystem (required by the test suite):
+    http://www.keplerproject.org/luafilesystem/

@@ -1,0 +1,13 @@
+ * Right now there is one single global state, which means hige is basically 
+   broken even if it passes a good bunch of the tests. Top priority!
+
+ * Switching delimiters on the fly does not currently work.
+
+ * Leading spaces in comments are not preserved.
+
+ * Partials works by looking up variables in _G or in the specified 
+   environment, but I'm not really keen on this as it can lead to troubles 
+   when used where an heavy functions environment manipulation occurs 
+   (e.g., Mercury).
+
+ * Reading partials from files is not supported yet.
