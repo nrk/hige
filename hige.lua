@@ -1,6 +1,7 @@
 module('hige', package.seeall)
 
 local tags = { open = '{{', close = '}}' }
+local r = {}
 
 local function merge_environment(...)
     local numargs, out = select('#', ...), {}
@@ -43,16 +44,16 @@ local function find(name, context)
     end
 end
 
-local function render_partial(state, name, context)
+function r.partial(state, name, context)
     local target_mt   = setmetatable(context, { __index = state.lookup_env })
     local target_name = setfenv(loadstring('return ' .. name), target_mt)()
     local target_type = type(target_name)
 
     if target_type == 'string' then
-        return perform_render(state, target_name, context)
+        return r.render(state, target_name, context)
     elseif target_type == 'table' then
         local target_template = setfenv(loadstring('return '..name..'_template'), target_mt)()
-        return perform_render(state, target_template, merge_environment(target_name, context))
+        return r.render(state, target_template, merge_environment(target_name, context))
     else
         error('unknown partial type "' .. tostring(name) .. '"')
     end
@@ -69,7 +70,7 @@ local operators = {
     end, 
     -- render partial
     ['<'] = function(state, op, name, context) 
-        return render_partial(state, name, context)
+        return r.partial(state, name, context)
     end, 
     -- set new delimiters
     ['='] = function(state, op, name, context)
@@ -84,7 +85,7 @@ local operators = {
     end, 
 }
 
-local function render_tags(state, template, context)
+function r.tags(state, template, context)
     return template:gsub(state.tag_open..'([=!<{]?)%s*([^#/]-)%s*[=}]?%s*'..state.tag_close, function(op, name)
         if operators[op] ~= nil then
             return tostring(operators[op](state, op, name, context))
@@ -96,7 +97,7 @@ local function render_tags(state, template, context)
     end)
 end
 
-local function render_section(state, template, context)
+function r.section(state, template, context)
     for section_name in template:gmatch(state.tag_open..'#%s*([^#/]-)%s*'..state.tag_close) do 
         local found, value = context[section_name] ~= nil, find(section_name, context)
         local section_path = '('..state.tag_open..'#'..section_name..state.tag_close..'%s*(.*)'..state.tag_open..'/'..section_name..state.tag_close..')%s*'
@@ -105,14 +106,14 @@ local function render_section(state, template, context)
             if found == false then return '' end
 
             if value == true then 
-                return perform_render(state, inner, context)
+                return r.render(state, inner, context)
             elseif type(value) == 'table' then 
                 local output = {}
                 for _, row in pairs(value) do 
                     if type(row) == 'table' then 
-                        table.insert(output, (perform_render(state, inner, merge_environment(context, row))))
+                        table.insert(output, (r.render(state, inner, merge_environment(context, row))))
                     else
-                        table.insert(output, (perform_render(state, inner, row)))
+                        table.insert(output, (r.render(state, inner, row)))
                     end
                 end
                 return table.concat(output)
@@ -125,8 +126,8 @@ local function render_section(state, template, context)
     return template
 end
 
-function perform_render(state, template, context)
-    return render_tags(state, render_section(state, template, context), context)
+function r.render(state, template, context)
+    return r.tags(state, r.section(state, template, context), context)
 end
 
 function render(template, context, env)
@@ -137,6 +138,6 @@ function render(template, context, env)
         tag_open   = tags.open, 
         tag_close  = tags.close, 
     }
-    return perform_render(state, template, context or {})
+    return r.render(state, template, context or {})
 end
 
