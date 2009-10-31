@@ -46,19 +46,19 @@ end
 
 local operators = {
     -- comments 
-    ['!'] = function(state, op, name, context) 
-        return state.tag_open .. op .. name .. state.tag_close
+    ['!'] = function(state, outer, name, context) 
+        return state.tag_open .. '!' .. outer .. state.tag_close
     end, 
     -- the triple hige is unescaped
-    ['{'] = function(state, op, name, context) 
+    ['{'] = function(state, outer, name, context) 
         return find(name, context) 
     end, 
     -- render partial
-    ['<'] = function(state, op, name, context) 
+    ['<'] = function(state, outer, name, context) 
         return r.partial(state, name, context)
     end, 
     -- set new delimiters
-    ['='] = function(state, op, name, context)
+    ['='] = function(state, outer, name, context)
         -- FIXME!
         error('setting new delimiters in the template is currently broken')
         --[[
@@ -86,9 +86,9 @@ function r.partial(state, name, context)
 end
 
 function r.tags(state, template, context)
-    return template:gsub(state.tag_open..'([=!<{]?)%s*([^#/]-)%s*[=}]?%s*'..state.tag_close, function(op, name)
+    return template:gsub(state.tag_open..'([=!<{]?)(%s*([^#/]-)%s*)[=}]?%s*'..state.tag_close, function(op, outer, name)
         if operators[op] ~= nil then
-            return tostring(operators[op](state, op, name, context))
+            return tostring(operators[op](state, outer, name, context))
         else
             return escape(tostring((function() 
                 if name ~= '.' then return find(name, context) else return context end
