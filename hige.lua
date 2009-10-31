@@ -86,12 +86,18 @@ function r.partial(state, name, context)
 end
 
 function r.tags(state, template, context)
-    return template:gsub(state.tag_open..'([=!<{]?)(%s*([^#/]-)%s*)[=}]?%s*'..state.tag_close, function(op, outer, name)
+    local tag_path = state.tag_open..'([=!<{]?)(%s*([^#/]-)%s*)[=}]?%s*'..state.tag_close
+
+    return template:gsub(tag_path, function(op, outer, name)
         if operators[op] ~= nil then
             return tostring(operators[op](state, outer, name, context))
         else
             return escape(tostring((function() 
-                if name ~= '.' then return find(name, context) else return context end
+                if name ~= '.' then 
+                    return find(name, context) 
+                else 
+                    return context 
+                end
             end)()))
         end
     end)
@@ -110,11 +116,13 @@ function r.section(state, template, context)
             elseif type(value) == 'table' then 
                 local output = {}
                 for _, row in pairs(value) do 
+                    local new_context
                     if type(row) == 'table' then 
-                        table.insert(output, (r.render(state, inner, merge_environment(context, row))))
+                        new_context = merge_environment(context, row)
                     else
-                        table.insert(output, (r.render(state, inner, row)))
+                        new_context = row
                     end
+                    table.insert(output, (r.render(state, inner, new_context)))
                 end
                 return table.concat(output)
             else 
@@ -138,6 +146,6 @@ function render(template, context, env)
         tag_open   = tags.open, 
         tag_close  = tags.close, 
     }
+
     return r.render(state, template, context or {})
 end
-
