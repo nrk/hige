@@ -100,9 +100,9 @@ end
 function r.section(state, template, context)
     for section_name in template:gmatch(state.tag_open..'#%s*([^#/]-)%s*'..state.tag_close) do 
         local found, value = context[section_name] ~= nil, find(section_name, context)
-        local section_path = '('..state.tag_open..'#'..section_name..state.tag_close..'%s*(.*)'..state.tag_open..'/'..section_name..state.tag_close..')%s*'
+        local section_path = state.tag_open..'#'..section_name..state.tag_close..'%s*(.*)'..state.tag_open..'/'..section_name..state.tag_close..'%s*'
 
-        template = template:gsub(section_path, function(outer, inner)
+        template = template:gsub(section_path, function(inner)
             if found == false then return '' end
 
             if value == true then 
