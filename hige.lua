@@ -44,21 +44,6 @@ local function find(name, context)
     end
 end
 
-function r.partial(state, name, context)
-    local target_mt   = setmetatable(context, { __index = state.lookup_env })
-    local target_name = setfenv(loadstring('return ' .. name), target_mt)()
-    local target_type = type(target_name)
-
-    if target_type == 'string' then
-        return r.render(state, target_name, context)
-    elseif target_type == 'table' then
-        local target_template = setfenv(loadstring('return '..name..'_template'), target_mt)()
-        return r.render(state, target_template, merge_environment(target_name, context))
-    else
-        error('unknown partial type "' .. tostring(name) .. '"')
-    end
-end
-
 local operators = {
     -- comments 
     ['!'] = function(state, op, name, context) 
@@ -84,6 +69,21 @@ local operators = {
         ]]
     end, 
 }
+
+function r.partial(state, name, context)
+    local target_mt   = setmetatable(context, { __index = state.lookup_env })
+    local target_name = setfenv(loadstring('return ' .. name), target_mt)()
+    local target_type = type(target_name)
+
+    if target_type == 'string' then
+        return r.render(state, target_name, context)
+    elseif target_type == 'table' then
+        local target_template = setfenv(loadstring('return '..name..'_template'), target_mt)()
+        return r.render(state, target_template, merge_environment(target_name, context))
+    else
+        error('unknown partial type "' .. tostring(name) .. '"')
+    end
+end
 
 function r.tags(state, template, context)
     return template:gsub(state.tag_open..'([=!<{]?)%s*([^#/]-)%s*[=}]?%s*'..state.tag_close, function(op, name)
