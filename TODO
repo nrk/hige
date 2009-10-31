@@ -1,6 +1,3 @@
- * Right now there is one single global state, which means hige is basically 
-   broken even if it passes a good bunch of the tests. Top priority!
-
  * Switching delimiters on the fly does not currently work.
 
  * Leading spaces in comments are not preserved.
